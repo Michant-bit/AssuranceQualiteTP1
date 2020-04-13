@@ -1,0 +1,17 @@
+Quantité erroné
+	2.5 au lieu de 2 (pas de float ou double)
+	
+Afficher la facture dans le terminal
+	Afficher la facture aussi sur le terminal
+	
+Les raisons de commandes incorrectes
+	Afficher pourquoi il y a une erreur et quoi
+	
+Pas de facture si 0$
+	Ne pas afficher la facture du client si 0$
+	
+Appliquer les taxes TPS 5% et TVQ 9.975%
+	Ajuster le calcul de la facture en ajoutant les taxes
+	
+Calcul de facture par client
+	Faire une seule facture par client

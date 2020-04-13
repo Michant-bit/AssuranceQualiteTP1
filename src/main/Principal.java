@@ -1,9 +1,11 @@
 // Créé par Antoine La Boissière
 
-package projet;
+package main;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class Principal {
 
@@ -30,11 +32,11 @@ public class Principal {
 		if ( validation ) {
 
 			facture = formerFacture( clients, plats, commandes );
-			
-			envoyerFacture(facture);
+
+			envoyerFacture( facture );
 
 		} else {
-			
+
 			erreur();
 
 		}
@@ -110,11 +112,11 @@ public class Principal {
 		for ( int y = 0; y < commandes.size(); y++ ) {
 
 			validation = validationUneCommande( clients, plats, commandes.get( y ) );
-			
-			if(!validation) {
-				
+
+			if ( !validation ) {
+
 				y = commandes.size();
-				
+
 			}
 
 		}
@@ -266,20 +268,23 @@ public class Principal {
 
 	}
 
-	private static void envoyerFacture( ArrayList<Client> facture ) {
+	private static void envoyerFacture( ArrayList<Client> facture )
+			throws FileNotFoundException, UnsupportedEncodingException {
 
 		String fichierRetour = "";
 
-		fichierRetour += "Bienvenue  chez  Barette !\n"
-				+ "Factures :\n";
+		fichierRetour += "Bienvenue  chez  Barette !\n" + "Factures :\n";
 
 		for ( int i = 0; i < facture.size(); i++ ) {
 
 			fichierRetour += facture.get( i ).afficher();
 
 		}
+		
+		PrintWriter writerPrint = new PrintWriter( "Facture-du-" + LocalDate.now() + ".txt", "UTF-8" );
 
-		try (FileWriter writer = new FileWriter( "Sortie.txt" ); BufferedWriter bw = new BufferedWriter( writer )) {
+		try (FileWriter writerFile = new FileWriter( "Facture-du-" + LocalDate.now() + ".txt" );
+				BufferedWriter bw = new BufferedWriter( writerFile )) {
 
 			bw.write( fichierRetour );
 
@@ -290,13 +295,16 @@ public class Principal {
 		}
 
 	}
-	
-	private static void erreur() {
-		
+
+	private static void erreur() throws FileNotFoundException, UnsupportedEncodingException {
+
 		String erreur = "Vous avez une erreur dans l'une de vos commandes !\n"
 				+ "Vérifiez le nom de la commande ou du client !";
 		
-		try (FileWriter writer = new FileWriter( "Sortie.txt" ); BufferedWriter bw = new BufferedWriter( writer )) {
+		PrintWriter writerPrint = new PrintWriter( "Facture-du-" + LocalDate.now() + ".txt", "UTF-8" );
+
+		try (FileWriter writer = new FileWriter( "Facture-du-" + LocalDate.now() + ".txt" );
+				BufferedWriter bw = new BufferedWriter( writer )) {
 
 			bw.write( erreur );
 
@@ -305,6 +313,6 @@ public class Principal {
 			System.err.format( "IOException: %s%n", e );
 
 		}
-		
+
 	}
 }

@@ -1,0 +1,7 @@
+Ce que Antoine La Boissière doit faire :
+	- Quantité erroné
+	- Afficher la facture dans le terminal
+	- Les raisons de commandes incorrectes
+	- Pas de facture si 0$
+	- Appliquer les taxes TPS 5% et TVQ 9.975%
+	- Calcul de facture par client
