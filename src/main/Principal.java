@@ -5,7 +5,6 @@ package main;
 import java.io.*;
 import java.util.ArrayList;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Principal {
 
@@ -43,7 +42,7 @@ public class Principal {
 
 	}
 
-	private static ArrayList<String> preparation( ArrayList<String> fichier ) throws IOException {
+	public static ArrayList<String> preparation( ArrayList<String> fichier ) throws IOException {
 
 		BufferedReader lecteurAvecBuffer = null;
 		String ligne = "";
@@ -72,7 +71,7 @@ public class Principal {
 
 	}
 
-	private static ArrayList<String> separation( ArrayList<String> fichier, String debut, String fin ) {
+	public static ArrayList<String> separation( ArrayList<String> fichier, String debut, String fin ) {
 
 		ArrayList<String> liste = new ArrayList<String>();
 
@@ -104,7 +103,7 @@ public class Principal {
 		return liste;
 	}
 
-	private static boolean validationToutesCommandes( ArrayList<String> clients, ArrayList<String> plats,
+	public static boolean validationToutesCommandes( ArrayList<String> clients, ArrayList<String> plats,
 			ArrayList<String> commandes ) {
 
 		boolean validation = true;
@@ -125,12 +124,13 @@ public class Principal {
 
 	}
 
-	private static boolean validationUneCommande( ArrayList<String> clients, ArrayList<String> plats,
+	public static boolean validationUneCommande( ArrayList<String> clients, ArrayList<String> plats,
 			String commandes ) {
 
 		boolean validation = false;
 		boolean estUnClient = false;
 		boolean estUnPlat = false;
+		boolean estUneQuantite = false;
 
 		for ( int y = 0; y < clients.size(); y++ ) {
 
@@ -142,6 +142,8 @@ public class Principal {
 
 		}
 
+		erreurValidation( estUnClient, "Le nom", commandes.split( " " )[0] );
+
 		for ( int y = 0; y < plats.size(); y++ ) {
 
 			if ( commandes.contains( plats.get( y ).split( " " )[0] ) ) {
@@ -152,9 +154,45 @@ public class Principal {
 
 		}
 
-		if ( estUnClient && estUnPlat ) {
+		erreurValidation( estUnPlat, "Le plat", commandes.split( " " )[1] );
+
+		estUneQuantite = estUnNombre( commandes );
+
+		validation = isAllTrue( estUnClient, estUnPlat, estUneQuantite );
+
+		return validation;
+
+	}
+
+	public static void erreurValidation( boolean validation, String variable, String erreur ) {
+
+		if ( !validation ) {
+
+			messageErreurValidation( variable, erreur );
+
+		}
+
+	}
+
+	public static void messageErreurValidation( String variable, String erreur ) {
+
+		System.out.println( "Erreur : " + variable + " " + erreur + " de la commande n'est pas valide !" );
+
+	}
+
+	public static boolean estUnNombre( String commandes ) {
+
+		boolean validation = false;
+
+		try {
+
+			Integer.parseInt( commandes.split( " " )[2] );
 
 			validation = true;
+
+		} catch ( NumberFormatException ex ) {
+
+			messageErreurValidation( "La quantité", commandes.split( " " )[2] );
 
 		}
 
@@ -162,7 +200,21 @@ public class Principal {
 
 	}
 
-	private static ArrayList<Client> formerFacture( ArrayList<String> clients, ArrayList<String> plats,
+	public static boolean isAllTrue( boolean var1, boolean var2, boolean var3 ) {
+
+		if ( var1 && var2 && var3 ) {
+
+			return true;
+
+		} else {
+
+			return false;
+
+		}
+
+	}
+
+	public static ArrayList<Client> formerFacture( ArrayList<String> clients, ArrayList<String> plats,
 			ArrayList<String> commandes ) {
 
 		ArrayList<Client> facture = new ArrayList<Client>();
@@ -174,7 +226,33 @@ public class Principal {
 		ArrayList<String> commandesTitre = new ArrayList<String>();
 		ArrayList<String> commandesQuantite = new ArrayList<String>();
 
+		// Taxes
+
+		final float TPS = 0.05f;
+		final float TVQ = 0.09975f;
+
 		// Séparer les plats
+
+		separerPlats( plats, platsTitre, platsPrix );
+
+		// Séparer les commandes
+
+		separerCommandes( commandes, commandesNom, commandesTitre, commandesQuantite );
+
+		// Former le prix
+		
+		formerPrix( facture, platsTitre, platsPrix, commandesNom, commandesTitre, commandesQuantite, clients );
+
+		// Appliquer les taxes
+
+		appliquerTaxes( facture, TPS, TVQ );
+
+		return facture;
+
+	}
+
+	public static void separerPlats( ArrayList<String> plats, ArrayList<String> platsTitre,
+			ArrayList<String> platsPrix ) {
 
 		for ( int y = 0; y < plats.size(); y++ ) {
 
@@ -183,7 +261,10 @@ public class Principal {
 
 		}
 
-		// Séparer les commandes
+	}
+
+	public static void separerCommandes( ArrayList<String> commandes, ArrayList<String> commandesNom,
+			ArrayList<String> commandesTitre, ArrayList<String> commandesQuantite ) {
 
 		for ( int y = 0; y < commandes.size(); y++ ) {
 
@@ -193,7 +274,11 @@ public class Principal {
 
 		}
 
-		// Former le prix
+	}
+
+	public static void formerPrix( ArrayList<Client> facture, ArrayList<String> platsTitre,
+			ArrayList<String> platsPrix, ArrayList<String> commandesNom, ArrayList<String> commandesTitre,
+			ArrayList<String> commandesQuantite, ArrayList<String> clients ) {
 
 		for ( int i = 0; i < commandesTitre.size(); i++ ) {
 
@@ -246,29 +331,23 @@ public class Principal {
 
 		}
 
-		// Chercher si un client n'a pas de commande
+	}
+	
+	public static void appliquerTaxes(ArrayList<Client> facture, float TPS, float TVQ) {
+		
+		for ( int j = 0; j < facture.size(); j++ ) {
 
-		if ( clients.size() != 0 ) {
+			float prixAvantTaxes, prixApresTaxes;
+			prixAvantTaxes = facture.get( j ).prix;
+			prixApresTaxes = prixAvantTaxes + prixAvantTaxes * TPS + prixAvantTaxes * TVQ;
 
-			for ( int i = 0; i < clients.size(); i++ ) {
-
-				Client client = new Client();
-				client.nom = clients.get( i );
-				client.prix = 0;
-
-				facture.add( client );
-
-				clients.remove( 0 );
-
-			}
+			facture.get( j ).prix = prixApresTaxes;
 
 		}
-
-		return facture;
-
+		
 	}
 
-	private static void envoyerFacture( ArrayList<Client> facture )
+	public static void envoyerFacture( ArrayList<Client> facture )
 			throws FileNotFoundException, UnsupportedEncodingException {
 
 		String fichierRetour = "";
@@ -280,7 +359,9 @@ public class Principal {
 			fichierRetour += facture.get( i ).afficher();
 
 		}
-		
+
+		System.out.println( fichierRetour );
+
 		PrintWriter writerPrint = new PrintWriter( "Facture-du-" + LocalDate.now() + ".txt", "UTF-8" );
 
 		try (FileWriter writerFile = new FileWriter( "Facture-du-" + LocalDate.now() + ".txt" );
@@ -296,11 +377,11 @@ public class Principal {
 
 	}
 
-	private static void erreur() throws FileNotFoundException, UnsupportedEncodingException {
+	public static void erreur() throws FileNotFoundException, UnsupportedEncodingException {
 
 		String erreur = "Vous avez une erreur dans l'une de vos commandes !\n"
 				+ "Vérifiez le nom de la commande ou du client !";
-		
+
 		PrintWriter writerPrint = new PrintWriter( "Facture-du-" + LocalDate.now() + ".txt", "UTF-8" );
 
 		try (FileWriter writer = new FileWriter( "Facture-du-" + LocalDate.now() + ".txt" );
